@@ -42,4 +42,7 @@ git config --global --add safe.directory "*"
 git pull --no-tags origin master
 
 echo -e "${Green} [INFO] 开始运行... ${Plain}"
+CURRENT_VERSION=$(grep '__VERSION__' main.py | cut -d'"' -f2)
+LATEST_VERSION=$(curl -s https://fansmedalhelper.02000721.xyz/version | grep -o '"version":"[^"]*"' | cut -d'"' -f4)
+echo -e "${Green} [INFO] 当前版本：${CURRENT_VERSION}   最新版本：${LATEST_VERSION} ${Plain}"
 python3 main.py --auto
