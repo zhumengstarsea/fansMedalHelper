@@ -3,7 +3,7 @@ ENV TZ="Asia/Shanghai"
 
 WORKDIR /tmp
 
-RUN apk add --no-cache git \
+RUN apk add --no-cache git curl \
     && git config --global --add safe.directory "*" \
     && git clone https://github.com/zhumengstarsea/fansMedalHelper /app/fansMedalHelper \
     && pip install --no-cache-dir -r /app/fansMedalHelper/requirements.txt \
