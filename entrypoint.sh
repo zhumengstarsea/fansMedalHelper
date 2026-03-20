@@ -19,21 +19,21 @@ case ${MIRRORS} in
 "0")
     # https://github.com/
     echo -e "${Green} [INFO] 使用源-GitHub ${Plain}"
-    git remote set-url origin https://github.com/zhumengstarsea/fansMedalHelper.git
+    git remote set-url origin https://github.com/zhumengstarsea/FansMedalHelper.git
     ;;
 "1")
     # https://ghproxy.com/
     echo -e "${Green} [INFO] 使用镜像源-GHProxy ${Plain}"
-    git remote set-url origin https://mirror.ghproxy.com/https://github.com/zhumengstarsea/fansMedalHelper.git
+    git remote set-url origin https://mirror.ghproxy.com/https://github.com/zhumengstarsea/FansMedalHelper.git
     ;;
 "2")
     # http://fastgit.org/
     echo -e "${Green} [INFO] 使用镜像源-FastGIT ${Plain}"
-    git remote set-url origin https://hub.fastgit.xyz/zhumengstarsea/fansMedalHelper.git
+    git remote set-url origin https://hub.fastgit.xyz/zhumengstarsea/FansMedalHelper.git
     ;;
 *)
     echo -e "${Green} [INFO] 使用源-GitHub ${Plain}"
-    git remote set-url origin https://github.com/zhumengstarsea/fansMedalHelper.git
+    git remote set-url origin https://github.com/zhumengstarsea/FansMedalHelper.git
     ;;
 esac
 

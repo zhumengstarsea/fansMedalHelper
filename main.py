@@ -28,6 +28,7 @@ try:
     assert users["LIKE_CD"] >= -1, "LIKE_CD参数错误"
     # assert users['SHARE_CD'] >= 0, "SHARE_CD参数错误"
     assert users["DANMAKU_CD"] >= -1, "DANMAKU_CD参数错误"
+    assert users["DOSIGN"] in [0, 1], "DOSIGN参数错误"
     assert users["WATCHINGLIVE"] >= 0, "WATCHINGLIVE参数错误"
     assert users["WEARMEDAL"] in [0, 1], "WEARMEDAL参数错误"
     assert users["WATCHINGLIVE_CD"] >= -1, "WATCHINGLIVE_CD参数错误"
@@ -37,7 +38,7 @@ try:
     cron_index = users.get("CRON_INDEX", 0)
     assert isinstance(cron_index, int), "CRON_INDEX参数错误"
     config = {
-        "doSign": users.get("doSign", 0),
+        "DOSIGN": users["DOSIGN"],
         "LIKE_CD": users["LIKE_CD"],
         # "SHARE_CD": users['SHARE_CD'],
         "DANMAKU_CD": users["DANMAKU_CD"],
@@ -74,16 +75,19 @@ async def main():
     messageList = []
     session = aiohttp.ClientSession(trust_env=True)
     try:
-        log.warning("当前版本为: " + __VERSION__)
         resp = await (
             await session.get(
                 "https://fansmedalhelper.02000721.xyz/version"
             )
         ).json()
-        if resp["version"] != __VERSION__:
-            log.warning("新版本为: " + resp["version"] + ",请更新")
+        latest_version = resp["version"]
+        need_update = latest_version != __VERSION__
+        log.warning(f"当前版本：{__VERSION__}")
+        log.warning(f"最新版本：{latest_version}，{'请更新' if need_update else '无需更新'}")
+        if need_update:
             log.warning("更新内容: " + resp["changelog"])
-            messageList.append(f"当前版本: {__VERSION__} ,最新版本: {resp['version']}")
+            messageList.append(f"当前版本：{__VERSION__}")
+            messageList.append(f"最新版本：{latest_version}，请更新")
             messageList.append(f"更新内容: {resp['changelog']} ")
         if resp["notice"]:
             log.warning("公告: " + resp["notice"])

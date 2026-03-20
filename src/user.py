@@ -210,7 +210,7 @@ class BiliUser:
             self.errmsg.append("登录失败 可能是 access_key 过期 , 请重新获取")
             await self.session.close()
         else:
-            if self.config.get('doSign', 0) != -1:
+            if self.config.get('DOSIGN', 0) == 1:
                 await self.doSign()
             await self.getMedals()
 
@@ -239,33 +239,78 @@ class BiliUser:
 
             await asyncio.gather(*tasks)
 
+    def _merge_error_messages(self):
+        """
+        合并错误日志：相同错误信息的多个主播名合并为一行
+        """
+        if len(self.errmsg) <= 1:  # 只有"错误日志："或为空
+            return self.errmsg
+        
+        merged = [self.errmsg[0]]  # 保留"错误日志："
+        error_dict = {}  # {error_msg: [(username, anchor_name), ...]}
+        
+        for line in self.errmsg[1:]:
+            # 尝试解析格式：【{user}】 {anchor} {error_type}: {error_msg}
+            if line.startswith("【") and "】" in line:
+                bracket_end = line.index("】")
+                username = line[1:bracket_end]
+                rest = line[bracket_end + 1:].strip()
+                
+                # 查找最后一个冒号，分割主播名和错误信息
+                if " " in rest and ":" in rest:
+                    last_colon = rest.rfind(":")
+                    anchor_and_type = rest[:last_colon].strip()
+                    error_msg = rest[last_colon + 1:].strip()
+                    
+                    # 生成错误键（用户名 + 错误信息）
+                    error_key = (username, error_msg)
+                    
+                    if error_key not in error_dict:
+                        error_dict[error_key] = []
+                    error_dict[error_key].append(anchor_and_type)
+                else:
+                    # 无法解析的格式，直接保留
+                    merged.append(line)
+            else:
+                # 不是主播相关错误，直接保留
+                merged.append(line)
+        
+        # 重新生成合并后的错误行
+        for (username, error_msg), anchors in error_dict.items():
+            if len(anchors) == 1:
+                # 单个主播，保持原格式
+                merged.append(f"【{username}】 {anchors[0]} {error_msg}")
+            else:
+                # 多个主播，合并为"anchor1等N个"格式
+                merged.append(f"【{username}】 {anchors[0]}等{len(anchors)}个 {error_msg}")
+        
+        return merged
+
     async def sendmsg(self):
         if not self.isLogin:
             await self.session.close()
             return self.message + self.errmsg
         await self.getMedals()
-        nameList1, nameList2, nameList3, nameList4 = [], [], [], []
+        intimacy_groups = {}
         for medal in self.medals:
             if medal['medal']['level'] >= 120:
                 continue
             today_feed = medal['medal']['today_feed']
             nick_name = medal['anchor_info']['nick_name']
-            if today_feed >= 30:
-                nameList1.append(nick_name)
-            elif 20 <= today_feed < 30:
-                nameList2.append(nick_name)
-            elif 10 <= today_feed < 20:
-                nameList3.append(nick_name)
-            elif today_feed < 10:
-                nameList4.append(nick_name)
+            if today_feed not in intimacy_groups:
+                intimacy_groups[today_feed] = []
+            intimacy_groups[today_feed].append(nick_name)
         self.message.append(f"【{self.name}】 今日亲密度获取情况如下：")
 
-        for medal_list, title in zip(
-            [nameList1, nameList2, nameList3, nameList4],
-            ["【30】", "【20至30】", "【10至20】", "【10以下】"],
-        ):
-            if len(medal_list) > 0:
-                self.message.append(f"{title}" + ' '.join(medal_list[:5]) + f"{'等' if len(medal_list) > 5 else ''}" + f' {len(medal_list)}个')
+        for intimacy in sorted(intimacy_groups.keys(), reverse=True):
+            medal_list = intimacy_groups[intimacy]
+            count_suffix = f" {len(medal_list)}个" if len(medal_list) > 1 else ""
+            self.message.append(
+                f"【{intimacy}】"
+                + ' '.join(medal_list[:5])
+                + ("等" if len(medal_list) > 5 else "")
+                + count_suffix
+            )
 
         if hasattr(self, 'initialMedal'):
             initialMedalInfo = await self.api.getMedalsInfoByUid(self.initialMedal['target_id'])
@@ -283,7 +328,9 @@ class BiliUser:
                         f"距离下一级还需 {need} 亲密度 预计需要 {need_days} 天 ({end_date.strftime('%Y-%m-%d')},以每日 30 亲密度计算)"
                     )
         await self.session.close()
-        return self.message + self.errmsg + ['---']
+        
+        merged_errmsg = self._merge_error_messages()
+        return self.message + merged_errmsg + ['---']
 
     async def watchinglive(self):
         if not self.config['WATCHINGLIVE']:

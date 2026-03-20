@@ -5,10 +5,10 @@ WORKDIR /tmp
 
 RUN apk add --no-cache git curl \
     && git config --global --add safe.directory "*" \
-    && git clone https://github.com/zhumengstarsea/fansMedalHelper /app/fansMedalHelper \
-    && pip install --no-cache-dir -r /app/fansMedalHelper/requirements.txt \
+    && git clone https://github.com/zhumengstarsea/FansMedalHelper /app/FansMedalHelper \
+    && pip install --no-cache-dir -r /app/FansMedalHelper/requirements.txt \
     && rm -rf /tmp/*
 
-WORKDIR /app/fansMedalHelper
+WORKDIR /app/FansMedalHelper
 
-ENTRYPOINT ["/bin/sh","/app/fansMedalHelper/entrypoint.sh"]
+ENTRYPOINT ["/bin/sh","/app/FansMedalHelper/docker-entrypoint.sh"]
