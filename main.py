@@ -66,7 +66,7 @@ try:
         config["STOPWATCHINGTIME"] = delay
         log.info(f"本轮任务将在 {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(config['STOPWATCHINGTIME']))} 结束")
 except Exception as e:
-    log.error(f"读取配置文件失败,请检查配置文件格式是否正确: {e}")
+    log.error(f"读取配置文件失败，请检查配置文件格式是否正确：{e}")
     exit(1)
 
 
@@ -85,13 +85,13 @@ async def main():
         log.warning(f"当前版本：{__VERSION__}")
         log.warning(f"最新版本：{latest_version}，{'请更新' if need_update else '无需更新'}")
         if need_update:
-            log.warning("更新内容: " + resp["changelog"])
+            log.warning("更新内容：" + resp["changelog"])
             messageList.append(f"当前版本：{__VERSION__}")
             messageList.append(f"最新版本：{latest_version}，请更新")
-            messageList.append(f"更新内容: {resp['changelog']} ")
+            messageList.append(f"更新内容：{resp['changelog']} ")
         if resp["notice"]:
-            log.warning("公告: " + resp["notice"])
-            messageList.append(f"公告: {resp['notice']}")
+            log.warning("公告：" + resp["notice"])
+            messageList.append(f"公告：{resp['notice']}")
     except Exception as ex:
         messageList.append(f"检查版本失败，{ex}")
         log.warning(f"检查版本失败，{ex}")
@@ -115,7 +115,7 @@ async def main():
     except Exception as e:
         log.exception(e)
         # messageList = messageList + list(itertools.chain.from_iterable(await asyncio.gather(*catchMsg)))
-        messageList.append(f"任务执行失败: {e}")
+        messageList.append(f"任务执行失败：{e}")
     finally:
         messageList = messageList + list(
             itertools.chain.from_iterable(await asyncio.gather(*catchMsg))
@@ -186,10 +186,10 @@ if __name__ == "__main__":
                 schedulers.add_job(run, CronTrigger.from_crontab(cron_expr),
                                    misfire_grace_time=3600,
                                    kwargs={'cron_index': index + 1, 'total_count': len(cron_list)})
-                log.info(f"已添加定时任务: [{cron_expr}] (第 {index + 1}/{len(cron_list)} 个)")
+                log.info(f"已添加定时任务：[{cron_expr}] (第 {index + 1}/{len(cron_list)} 个)")
                 job_count += 1
             except Exception as e:
-                log.error(f"Cron 表达式 [{cron_expr}] 格式错误或添加失败: {e}")
+                log.error(f"Cron 表达式 [{cron_expr}] 格式错误或添加失败：{e}")
 
         if job_count > 0:
             log.info("所有定时任务已启动，等待执行...")

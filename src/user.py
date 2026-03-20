@@ -98,17 +98,17 @@ class BiliUser:
     async def doSign(self):
         try:
             signInfo = await self.api.doSign()
-            self.log.log("SUCCESS", "签到成功,本月签到次数: {}/{}".format(signInfo['hadSignDays'], signInfo['allDays']))
-            self.message.append(f"【{self.name}】 签到成功,本月签到次数: {signInfo['hadSignDays']}/{signInfo['allDays']}")
+            self.log.log("SUCCESS", "签到成功，本月签到次数：{}/{}".format(signInfo['hadSignDays'], signInfo['allDays']))
+            self.message.append(f"【{self.name}】 签到成功，本月签到次数：{signInfo['hadSignDays']}/{signInfo['allDays']}")
         except Exception as e:
             self.log.log("ERROR", e)
             self.errmsg.append(f"【{self.name}】" + str(e))
         userInfo = await self.api.getUserInfo()
         self.log.log(
-            "INFO", "当前用户UL等级: {} ,还差 {} 经验升级".format(userInfo['exp']['user_level'], userInfo['exp']['unext'])
+            "INFO", "当前用户UL等级：{}，还差 {} 经验升级".format(userInfo['exp']['user_level'], userInfo['exp']['unext'])
         )
         self.message.append(
-            f"【{self.name}】 UL等级: {userInfo['exp']['user_level']} ,还差 {userInfo['exp']['unext']} 经验升级"
+            f"【{self.name}】 UL等级：{userInfo['exp']['user_level']}，还差 {userInfo['exp']['unext']} 经验升级"
         )
 
     async def getMedals(self):
@@ -189,13 +189,13 @@ class BiliUser:
                 successnum+=1
                 self.log.log(
                     "DEBUG",
-                    "{} 房间弹幕打卡成功: {} ({}/{})".format(
+                    "{} 房间弹幕打卡成功：{} ({}/{})".format(
                         medal['anchor_info']['nick_name'], danmaku, n, len(self.medals)
                     ),
                 )
             except Exception as e:
-                self.log.log("ERROR", "{} 房间弹幕打卡失败: {}".format(medal['anchor_info']['nick_name'], e))
-                self.errmsg.append(f"【{self.name}】 {medal['anchor_info']['nick_name']} 房间弹幕打卡失败: {str(e)}")
+                self.log.log("ERROR", "{} 房间弹幕打卡失败：{}".format(medal['anchor_info']['nick_name'], e))
+                self.errmsg.append(f"【{self.name}】 {medal['anchor_info']['nick_name']} 房间弹幕打卡失败：{str(e)}")
             finally:
                 await asyncio.sleep(self.config['DANMAKU_CD'] if self.config['DANMAKU_CD'] > 0 else 0)
 
@@ -247,27 +247,34 @@ class BiliUser:
             return self.errmsg
         
         merged = [self.errmsg[0]]  # 保留"错误日志："
-        error_dict = {}  # {error_msg: [(username, anchor_name), ...]}
+        error_dict = {}  # {(username, error_type, error_msg): [anchor_name, ...]}
         
         for line in self.errmsg[1:]:
-            # 尝试解析格式：【{user}】 {anchor} {error_type}: {error_msg}
+            # 尝试解析格式：【{user}】 {anchor} {error_type}：{error_msg}
             if line.startswith("【") and "】" in line:
                 bracket_end = line.index("】")
                 username = line[1:bracket_end]
                 rest = line[bracket_end + 1:].strip()
                 
-                # 查找最后一个冒号，分割主播名和错误信息
-                if " " in rest and ":" in rest:
-                    last_colon = rest.rfind(":")
+                # 查找最后一个冒号（兼容英文冒号），分割错误类型和错误信息
+                last_colon = max(rest.rfind("："), rest.rfind(":"))
+                if " " in rest and last_colon != -1:
                     anchor_and_type = rest[:last_colon].strip()
                     error_msg = rest[last_colon + 1:].strip()
-                    
-                    # 生成错误键（用户名 + 错误信息）
-                    error_key = (username, error_msg)
+
+                    # anchor_and_type 形如: "向晚大魔王 自定义签到失败"
+                    if " " not in anchor_and_type:
+                        merged.append(line)
+                        continue
+
+                    anchor_name, error_type = anchor_and_type.rsplit(" ", 1)
+
+                    # 生成错误键（用户名 + 错误类型 + 错误信息）
+                    error_key = (username, error_type, error_msg)
                     
                     if error_key not in error_dict:
                         error_dict[error_key] = []
-                    error_dict[error_key].append(anchor_and_type)
+                    error_dict[error_key].append(anchor_name)
                 else:
                     # 无法解析的格式，直接保留
                     merged.append(line)
@@ -276,13 +283,13 @@ class BiliUser:
                 merged.append(line)
         
         # 重新生成合并后的错误行
-        for (username, error_msg), anchors in error_dict.items():
+        for (username, error_type, error_msg), anchors in error_dict.items():
             if len(anchors) == 1:
                 # 单个主播，保持原格式
-                merged.append(f"【{username}】 {anchors[0]} {error_msg}")
+                merged.append(f"【{username}】 {anchors[0]} {error_type}：{error_msg}")
             else:
                 # 多个主播，合并为"anchor1等N个"格式
-                merged.append(f"【{username}】 {anchors[0]}等{len(anchors)}个 {error_msg}")
+                merged.append(f"【{username}】 {anchors[0]}等{len(anchors)}个 {error_type}：{error_msg}")
         
         return merged
 
@@ -398,7 +405,7 @@ class BiliUser:
                     await self.api.signInGroups(group['group_id'], group['owner_uid'])
                 except Exception as e:
                     self.log.log("ERROR", group['group_name'] + " 签到失败")
-                    self.errmsg.append(f"应援团签到失败: {e}")
+                    self.errmsg.append(f"应援团签到失败：{e}")
                     continue
                 self.log.log("DEBUG", group['group_name'] + " 签到成功")
                 await asyncio.sleep(self.config['SIGNINGROUP_CD'] if self.config['SIGNINGROUP_CD'] > 0 else 0)
@@ -410,8 +417,8 @@ class BiliUser:
                 self.log.log("WARNING", "没有加入应援团")
         except Exception as e:
             self.log.exception(e)
-            self.log.log("ERROR", "应援团签到任务失败: " + str(e))
-            self.errmsg.append("应援团签到任务失败: " + str(e))
+            self.log.log("ERROR", "应援团签到任务失败：" + str(e))
+            self.errmsg.append("应援团签到任务失败：" + str(e))
 
     async def doCustomSignIn(self):
         """
@@ -430,8 +437,8 @@ class BiliUser:
                     n += 1
                     self.log.log("SUCCESS", f"{medal['anchor_info']['nick_name']} 自定义签到成功")
                 except Exception as e:
-                    self.log.log("ERROR", f"{medal['anchor_info']['nick_name']} 自定义签到失败: {e}")
-                    self.errmsg.append(f"【{self.name}】 {medal['anchor_info']['nick_name']} 自定义签到失败: {str(e)}")
+                    self.log.log("ERROR", f"{medal['anchor_info']['nick_name']} 自定义签到失败：{e}")
+                    self.errmsg.append(f"【{self.name}】 {medal['anchor_info']['nick_name']} 自定义签到失败：{str(e)}")
                     continue
                 await asyncio.sleep(self.config['CUSTOMSIGNIN_CD'] if self.config['CUSTOMSIGNIN_CD'] > 0 else 0)
             
@@ -442,5 +449,5 @@ class BiliUser:
                 self.log.log("WARNING", "自定义签到任务完成 0/0")
         except Exception as e:
             self.log.exception(e)
-            self.log.log("ERROR", "自定义签到任务失败: " + str(e))
-            self.errmsg.append("自定义签到任务失败: " + str(e))
+            self.log.log("ERROR", "自定义签到任务失败：" + str(e))
+            self.errmsg.append("自定义签到任务失败：" + str(e))
