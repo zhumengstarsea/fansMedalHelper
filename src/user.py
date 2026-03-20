@@ -231,14 +231,20 @@ class BiliUser:
             min_intimacy = self.config.get("MIN_INTIMACY_THRESHOLD", 30)
 
             if self.medalsNeedDo:
-                self.log.log("INFO", f"共有 {len(self.medalsNeedDo)} 个牌子未满 {min_intimacy} 亲密度")
+                if min_intimacy == 0:
+                    self.log.log("INFO", f"共有 {len(self.medalsNeedDo)} 个牌子")
+                else:
+                    self.log.log("INFO", f"共有 {len(self.medalsNeedDo)} 个牌子未满 {min_intimacy} 亲密度")
                 if should_execute:
                     tasks.append(self.like_v3())
                 else:
                     self.log.log("INFO", f"点赞任务跳过（当前 cron 索引: {self.cron_index}/{self.total_cron_count}, 仅在{self.get_target_description()} cron 执行）")
                 tasks.append(self.watchinglive())
             else:
-                self.log.log("INFO", f"所有牌子已满 {min_intimacy} 亲密度")
+                if min_intimacy == 0:
+                    self.log.log("INFO", "当前无可执行牌子")
+                else:
+                    self.log.log("INFO", f"所有牌子已满 {min_intimacy} 亲密度")
 
             if should_execute:
                 tasks.append(self.sendDanmaku())
