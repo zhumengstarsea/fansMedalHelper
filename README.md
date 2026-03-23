@@ -6,12 +6,24 @@
 
 当前版本：0.4.2
 
-## 关于原作
+## 关于
 
-感谢原作者的贡献，虽然不知为何要归档一个仍然可以使用的项目，但是既然我有需求用，我就会一直维护（有可能会重构，不过看起来没时间做）
+本仓库纯自用，如有本项目相关问题请不要去打扰上游作者，请提交 [Issue](https://github.com/zhumengstarsea/FansMedalHelper/issues) ！
+
+<details>
+<summary>关于上游</summary>
+
+- 上游仓库：[xiaofeiTM233/fansMedalHelper](https://github.com/xiaofeiTM233/fansMedalHelper)
+- 上游文档仓库：[xiaofeiTM233/fansMedalHelperVersion](https://github.com/xiaofeiTM233/fansMedalHelperVersion)
+</details>
+
+<details>
+<summary>关于原作</summary>
 
 - 原仓库：[XiaoMiku01/fansMedalHelper](https://github.com/XiaoMiku01/fansMedalHelper)
 - 原文档仓库：[XiaoMiku01/fansMedalHelperVersion](https://github.com/XiaoMiku01/fansMedalHelperVersion)
+</details>
+
 
 ## 新增亮点
 
@@ -51,13 +63,10 @@
 **请细心阅读**
 
 ---
-
+<!-- 
 ## 历史 Star 数
 
 [![Stargazers over time](https://starchart.cc/XiaoMiku01/fansMedalHelper.svg)](https://starchart.cc/XiaoMiku01/fansMedalHelper)
 
 [![Stargazers over time](https://starchart.cc/xiaofeiTM233/fansMedalHelper.svg)](https://starchart.cc/xiaofeiTM233/fansMedalHelper)
-
-## Contact
-
-本项目相关问题请不要去打扰原作者，如有问题，请提交 Issue ！
+ -->
